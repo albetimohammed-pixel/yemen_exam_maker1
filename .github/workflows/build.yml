@@ -1,0 +1,32 @@
+name: Build APK
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unzip project
+        run: unzip -q yemen_exam_maker_pro.zip
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: stable
+          cache: true
+      - name: Build
+        working-directory: yemen_exam_maker_pro
+        run: |
+          flutter create . --platforms=android --org com.yemen.exam --project-name yemen_exam_maker
+          sed -i 's/android:label="[^"]*"/android:label="صانع الاختبارات"/' android/app/src/main/AndroidManifest.xml
+          flutter pub get
+          flutter build apk --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: yemen_exam_maker_pro/build/app/outputs/flutter-apk/app-release.apk
